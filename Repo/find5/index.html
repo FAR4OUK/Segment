@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finding 5</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#191919; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#e2e8f0; padding:28px; }
+  .label { font-size:10px; color:#4f8ef7; letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+  .title { font-size:18px; font-weight:500; color:#fff; margin-bottom:6px; }
+  .desc { font-size:13px; color:#5a6478; margin-bottom:20px; line-height:1.6; }
+  .metric-row { display:flex; gap:12px; margin-bottom:20px; }
+  .metric-card { flex:1; background:#242424; border-radius:8px; padding:14px 12px; text-align:center; }
+  .metric-val { font-size:22px; font-weight:500; }
+  .metric-lbl { font-size:11px; color:#5a6478; margin-top:3px; line-height:1.4; }
+  .insight { background:#1e2330; border-left:3px solid #4f8ef7; border-radius:0 8px 8px 0; padding:14px 16px; margin-top:16px; font-size:13px; color:#a0aec0; line-height:1.6; }
+  .insight strong { color:#4ff7a0; font-weight:500; }
+</style>
+</head>
+<body>
+  <div class="label">Finding 5</div>
+  <div class="title">Highest margin category is missing from the catalog entirely</div>
+  <div class="desc">Accessories have the highest gross margin at 76.7% — yet Electronics, at the lowest margin of 48.6%, drives 81.9% of revenue.</div>
+  <div class="metric-row">
+    <div class="metric-card"><div class="metric-val" style="color:#1D9E75">76.7%</div><div class="metric-lbl">Accessories margin<br>highest in catalog</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#E24B4A">48.6%</div><div class="metric-lbl">Electronics margin<br>lowest in catalog</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#EF9F27">81.9%</div><div class="metric-lbl">Electronics share<br>of total revenue</div></div>
+  </div>
+  <div style="position:relative;width:100%;height:260px"><canvas id="c5"></canvas></div>
+  <div class="insight">Fixing the catalog gap doesn't just fix retention — it also <strong>dramatically improves the margin profile</strong> of the entire business. Every accessory sold instead of going to a competitor is a 76.7% margin transaction.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+new Chart(document.getElementById('c5'),{
+  type:'bar',
+  data:{
+    labels:['Accessories','Beauty','Health','Sports','Home','Electronics'],
+    datasets:[{data:[76.7,73.3,69.7,69.4,60.9,48.6],
+      backgroundColor:['#1D9E75','#1D9E75','#1D9E75','#1D9E75','#EF9F27','#E24B4A'],
+      borderColor:'transparent',borderWidth:0,borderRadius:4}]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.parsed.x.toFixed(1)+'% margin'}}},
+    scales:{
+      x:{min:0,max:100,ticks:{color:'#5a6478',callback:v=>v+'%'},grid:{color:'#2a2a2a'},border:{color:'#2a2a2a'}},
+      y:{ticks:{color:'#e2e8f0',font:{size:13}},grid:{display:false},border:{color:'#2a2a2a'}}
+    }
+  }
+});
+</script>
+</body></html>

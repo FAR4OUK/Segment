@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discount Revenue</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#191919; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#e2e8f0; padding:28px; }
+  .label { font-size:10px; color:#4f8ef7; letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+  .title { font-size:18px; font-weight:500; color:#fff; margin-bottom:6px; }
+  .desc { font-size:13px; color:#5a6478; margin-bottom:20px; line-height:1.6; }
+  .metric-row { display:flex; gap:12px; margin-bottom:20px; }
+  .metric-card { flex:1; background:#242424; border-radius:8px; padding:14px 12px; text-align:center; }
+  .metric-val { font-size:22px; font-weight:500; }
+  .metric-lbl { font-size:11px; color:#5a6478; margin-top:3px; line-height:1.4; }
+  .insight { background:#1e2330; border-left:3px solid #4f8ef7; border-radius:0 8px 8px 0; padding:14px 16px; margin-top:16px; font-size:13px; color:#a0aec0; line-height:1.6; }
+  .insight strong { color:#4ff7a0; font-weight:500; }
+</style>
+</head>
+<body>
+  <div class="label">Finding 6 — Revenue</div>
+  <div class="title">Discounted orders generate more revenue but at a margin cost</div>
+  <div class="desc">54.6% of all orders were sold at a discount. Discounted orders produced $2.72M vs $2.64M for non-discounted — but the margin tells a different story.</div>
+  <div class="metric-row">
+    <div class="metric-card"><div class="metric-val" style="color:#E24B4A">$2.72M</div><div class="metric-lbl">revenue with discount<br>11,031 orders</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#1D9E75">$2.64M</div><div class="metric-lbl">revenue without discount<br>9,164 orders</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#EF9F27">54.6%</div><div class="metric-lbl">orders sold<br>at a discount</div></div>
+  </div>
+  <div style="position:relative;width:100%;height:160px"><canvas id="cr"></canvas></div>
+  <div class="insight">Discounted orders generate <strong>more volume but fewer orders per customer</strong>. The business is trading margin for revenue that may have happened anyway at full price.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+new Chart(document.getElementById('cr'),{
+  type:'bar',
+  data:{
+    labels:['With Discount','Without Discount'],
+    datasets:[{data:[2722815.45,2639794.48],backgroundColor:['#E24B4A','#1D9E75'],borderColor:'transparent',borderWidth:0,borderRadius:4}]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' $'+ctx.parsed.x.toLocaleString('en-US',{maximumFractionDigits:0})}}},
+    scales:{
+      x:{ticks:{color:'#5a6478',callback:v=>'$'+Math.round(v/1000)+'K'},grid:{color:'#2a2a2a'},border:{color:'#2a2a2a'}},
+      y:{ticks:{color:'#e2e8f0',font:{size:13}},grid:{display:false},border:{color:'#2a2a2a'}}
+    }
+  }
+});
+</script>
+</body></html>

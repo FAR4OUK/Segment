@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finding 1</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#191919; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; color:#e2e8f0; padding:28px; }
+  .label { font-size:10px; color:#4f8ef7; letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; }
+  .title { font-size:18px; font-weight:500; color:#fff; margin-bottom:6px; }
+  .desc { font-size:13px; color:#5a6478; margin-bottom:20px; line-height:1.6; }
+  .metric-row { display:flex; gap:12px; margin-bottom:20px; }
+  .metric-card { flex:1; background:#242424; border-radius:8px; padding:14px 12px; text-align:center; }
+  .metric-val { font-size:22px; font-weight:500; }
+  .metric-lbl { font-size:11px; color:#5a6478; margin-top:3px; line-height:1.4; }
+  .legend-row { display:flex; gap:14px; margin-bottom:10px; font-size:11px; color:#5a6478; }
+  .dot { width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:middle; }
+  .insight { background:#1e2330; border-left:3px solid #4f8ef7; border-radius:0 8px 8px 0; padding:14px 16px; margin-top:16px; font-size:13px; color:#a0aec0; line-height:1.6; }
+  .insight strong { color:#4ff7a0; font-weight:500; }
+</style>
+</head>
+<body>
+  <div class="label">Finding 1</div>
+  <div class="title">The retention cliff — 36% of customers never returned</div>
+  <div class="desc">The cohort analysis revealed a massive drop between the first and second purchase. Two distinct customer types exist inside SwiftCart's base.</div>
+  <div class="metric-row">
+    <div class="metric-card"><div class="metric-val" style="color:#E24B4A">36%</div><div class="metric-lbl">never returned<br>2,880 customers</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#1D9E75">64%</div><div class="metric-lbl">returned at least once<br>5,120 customers</div></div>
+    <div class="metric-card"><div class="metric-val" style="color:#e2e8f0">8,000</div><div class="metric-lbl">total customers<br>2022–2024</div></div>
+  </div>
+  <div class="legend-row">
+    <span><span class="dot" style="background:#E24B4A"></span>Never returned (36%)</span>
+    <span><span class="dot" style="background:#1D9E75"></span>Returned at least once (64%)</span>
+  </div>
+  <div style="position:relative;width:100%;height:260px"><canvas id="c1"></canvas></div>
+  <div class="insight">SwiftCart does not have a loyalty problem. The 64% who return stay loyal for months and years. The problem is <strong>first-to-second purchase conversion</strong> — the business is failing to create loyal customers, not losing them.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+new Chart(document.getElementById('c1'),{
+  type:'doughnut',
+  data:{labels:['Never returned','Returned at least once'],datasets:[{data:[36,64],backgroundColor:['#E24B4A','#1D9E75'],borderColor:'transparent',borderWidth:0,hoverOffset:6}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false}}},
+  plugins:[{id:'ct',afterDraw(chart){
+    const{ctx,chartArea:{width,height,left,top}}=chart;
+    ctx.save();const cx=left+width/2,cy=top+height/2;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#E24B4A';ctx.font='500 26px sans-serif';ctx.fillText('36%',cx,cy-12);
+    ctx.fillStyle='#5a6478';ctx.font='400 12px sans-serif';ctx.fillText('never returned',cx,cy+12);
+    ctx.restore();
+  }}]
+});
+</script>
+</body></html>
