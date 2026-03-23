@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 — Revenue & Volume</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0f14; --surface:#111720; --surface2:#181f2b;
+  --border:#232d3f; --border2:#2d3a50;
+  --blue:#1a6cf0; --blue-mid:#3b82f6; --blue-glow:#60a5fa;
+  --blue-pale:#bfdbfe; --teal:#22d3ee; --green:#34d399;
+  --amber:#fbbf24; --red:#f87171;
+  --text:#f0f4f8; --text-muted:#8899b0; --text-dim:#ffffff;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:60px 52px 100px;line-height:1.6;max-width:1380px;margin:0 auto}
+.header{margin-bottom:80px}
+.header-eyebrow{font-family:var(--mono);font-size:11px;color:var(--blue-glow);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+.header h1{font-size:38px;font-weight:700;letter-spacing:-1px;color:var(--text);line-height:1.15;margin-bottom:12px}
+.header-sub{font-size:15px;font-weight:400;color:var(--text-muted)}
+.header-divider{height:1px;background:linear-gradient(90deg,var(--border2) 0%,transparent 80%);margin-top:32px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.section-num{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--blue-mid);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:4px 10px;border-radius:4px;letter-spacing:.05em}
+.section-label{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase}
+.section-line{flex:1;height:1px;background:var(--border)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;position:relative;overflow:hidden;animation:fadeUp .6s ease both}
+.card-accent{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--blue) 0%,rgba(96,165,250,.25) 55%,transparent 100%)}
+.kpi-label{font-size:11px;font-weight:500;color:var(--text-muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+.kpi-value{font-family:'Poppins',sans-serif;font-size:32px;font-weight:700;letter-spacing:-1px;line-height:1;color:var(--text)}
+.kpi-value.blue{color:var(--blue-glow)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.amber{color:var(--amber)}
+.kpi-value.teal{color:var(--teal)}
+.kpi-sub{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--text-dim);margin-top:10px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){body{padding:32px 20px 60px}.grid-4{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-eyebrow">E-Commerce Analytics · Funnel Report</div>
+  <h1>Revenue &amp; Volume</h1>
+  <div class="header-sub">5,000 visitors → 826 purchases · Overall conversion rate: 16.52%</div>
+  <div class="header-divider"></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <span class="section-label">Revenue &amp; Volume</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="grid-4">
+    <div class="card" style="animation-delay:.04s">
+      <div class="card-accent"></div>
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value green">$87,975</div>
+      <div class="kpi-sub">826 completed orders</div>
+    </div>
+    <div class="card" style="animation-delay:.10s">
+      <div class="card-accent"></div>
+      <div class="kpi-label">Avg. Order Value</div>
+      <div class="kpi-value blue">$106.51</div>
+      <div class="kpi-sub">revenue per buyer (ARPB)</div>
+    </div>
+    <div class="card" style="animation-delay:.16s">
+      <div class="card-accent"></div>
+      <div class="kpi-label">Revenue / Visitor</div>
+      <div class="kpi-value amber">$17.60</div>
+      <div class="kpi-sub">ARPV · all 5,000 sessions</div>
+    </div>
+    <div class="card" style="animation-delay:.22s">
+      <div class="card-accent"></div>
+      <div class="kpi-label">Total Buyers</div>
+      <div class="kpi-value teal">826</div>
+      <div class="kpi-sub">out of 5,000 visitors</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

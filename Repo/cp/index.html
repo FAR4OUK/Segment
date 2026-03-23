@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 — Cart to Purchase</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0f14; --surface:#111720; --surface2:#181f2b; --surface3:#1e2738;
+  --border:#232d3f; --border2:#2d3a50;
+  --blue:#1a6cf0; --blue-mid:#3b82f6; --blue-glow:#60a5fa;
+  --blue-pale:#bfdbfe; --teal:#22d3ee; --green:#34d399;
+  --amber:#fbbf24; --red:#f87171;
+  --text:#f0f4f8; --text-muted:#8899b0; --text-dim:#ffffff;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:60px 52px 100px;line-height:1.6;max-width:1380px;margin:0 auto}
+.header{margin-bottom:80px}
+.header-eyebrow{font-family:var(--mono);font-size:11px;color:var(--blue-glow);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+.header h1{font-size:38px;font-weight:700;letter-spacing:-1px;color:var(--text);line-height:1.15;margin-bottom:12px}
+.header-sub{font-size:15px;font-weight:400;color:var(--text-muted)}
+.header-divider{height:1px;background:linear-gradient(90deg,var(--border2) 0%,transparent 80%);margin-top:32px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.section-num{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--blue-mid);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:4px 10px;border-radius:4px;letter-spacing:.05em}
+.section-label{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase}
+.section-line{flex:1;height:1px;background:var(--border)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;position:relative;overflow:hidden;animation:fadeUp .6s ease both}
+.card-accent{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--blue) 0%,rgba(96,165,250,.25) 55%,transparent 100%)}
+.chart-title{font-size:17px;font-weight:600;letter-spacing:-.3px;color:var(--text);margin-bottom:5px}
+.chart-sub{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--text-dim);margin-bottom:28px}
+.gauge-row{display:flex;gap:24px;flex-wrap:wrap;justify-content:space-around;padding:12px 0 4px}
+.gauge-item{text-align:center;flex:1;min-width:120px}
+.gauge-val{font-family:'Poppins',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1;margin-top:-8px}
+.gauge-name{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--text-muted);margin-top:8px}
+.gauge-detail{font-family:var(--mono);font-size:10px;font-weight:300;color:var(--text-dim);margin-top:4px}
+.insight{background:rgba(26,108,240,.06);border:1px solid rgba(59,130,246,.15);border-left:3px solid var(--blue-mid);border-radius:8px;padding:16px 20px;margin-top:24px;font-size:13px;font-weight:400;color:var(--blue-pale);line-height:1.7}
+.insight strong{color:var(--blue-glow);font-weight:600}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){body{padding:32px 20px 60px}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-eyebrow">E-Commerce Analytics · Funnel Report</div>
+  <h1>Cart to Purchase</h1>
+  <div class="header-sub">5,000 visitors → 826 purchases · Overall conversion rate: 16.52%</div>
+  <div class="header-divider"></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <span class="section-label">Cart-to-Purchase Rate by Channel</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="card" style="animation-delay:.06s">
+    <div class="card-accent"></div>
+    <div class="chart-title">Once in Cart — Who Actually Buys?</div>
+    <div class="chart-sub">Cart-to-purchase rate per channel · reveals whether checkout friction differs across audiences</div>
+    <div class="gauge-row" id="cartToPurchase"></div>
+    <div class="insight">
+      All channels show broadly similar cart-to-purchase rates (51–57%). The performance gap between channels is <em>not</em> caused by checkout abandonment — it comes from <strong>who reaches the cart in the first place</strong>. Top-of-funnel quality improvements will outperform any checkout tweaks.
+    </div>
+  </div>
+</div>
+<script>
+const sources=[
+  {name:'organic',vol:2038,cart:669,purchase:343,c2p:51.27,cr:16.83},
+  {name:'paid_ads',vol:968,cart:358,purchase:204,c2p:56.98,cr:21.07},
+  {name:'email',vol:522,cart:326,purchase:177,c2p:54.29,cr:33.91},
+  {name:'social',vol:1472,cart:200,purchase:102,c2p:51.00,cr:6.93}
+];
+const srcColor={organic:'#22d3ee',paid_ads:'#3b82f6',email:'#34d399',social:'#fbbf24'};
+function buildGauges(){
+  const wrap=document.getElementById('cartToPurchase'),circ=141;
+  sources.forEach(s=>{
+    const c=srcColor[s.name],off=circ-(s.c2p/100*circ);
+    const d=document.createElement('div');d.className='gauge-item';
+    d.innerHTML=`<svg viewBox="0 0 110 68" width="130" height="78" style="display:block;margin:0 auto;overflow:visible"><path d="M12,63 A47,47 0 0,1 98,63" fill="none" stroke="#1e2738" stroke-width="9" stroke-linecap="round"/><path class="g-arc" d="M12,63 A47,47 0 0,1 98,63" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ}" style="transition:stroke-dashoffset 1.3s cubic-bezier(0.16,1,0.3,1)"/></svg><div class="gauge-val" style="color:${c}">${s.c2p}%</div><div class="gauge-name">${s.name}</div><div class="gauge-detail">${s.cart} → ${s.purchase} buyers</div>`;
+    wrap.appendChild(d);
+    setTimeout(()=>{d.querySelector('.g-arc').style.strokeDashoffset=off;},460);
+  });
+}
+buildGauges();
+</script>
+</body>
+</html>

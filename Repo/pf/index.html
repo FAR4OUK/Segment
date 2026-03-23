@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 — Purchase Funnel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0f14; --surface:#111720; --surface2:#181f2b;
+  --border:#232d3f; --border2:#2d3a50;
+  --blue:#1a6cf0; --blue-mid:#3b82f6; --blue-glow:#60a5fa;
+  --blue-pale:#bfdbfe; --teal:#22d3ee; --green:#34d399;
+  --amber:#fbbf24; --red:#f87171;
+  --text:#f0f4f8; --text-muted:#8899b0; --text-dim:#ffffff;
+  --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:60px 52px 100px;line-height:1.6;max-width:1380px;margin:0 auto}
+.header{margin-bottom:80px}
+.header-eyebrow{font-family:var(--mono);font-size:11px;color:var(--blue-glow);letter-spacing:.2em;text-transform:uppercase;margin-bottom:16px}
+.header h1{font-size:38px;font-weight:700;letter-spacing:-1px;color:var(--text);line-height:1.15;margin-bottom:12px}
+.header-sub{font-size:15px;font-weight:400;color:var(--text-muted)}
+.header-divider{height:1px;background:linear-gradient(90deg,var(--border2) 0%,transparent 80%);margin-top:32px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.section-num{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--blue-mid);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:4px 10px;border-radius:4px;letter-spacing:.05em}
+.section-label{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase}
+.section-line{flex:1;height:1px;background:var(--border)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;position:relative;overflow:hidden;animation:fadeUp .6s ease both}
+.card-accent{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--blue) 0%,rgba(96,165,250,.25) 55%,transparent 100%)}
+.chart-title{font-size:17px;font-weight:600;letter-spacing:-.3px;color:var(--text);margin-bottom:5px}
+.chart-sub{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--text-dim);margin-bottom:28px}
+.funnel-step{margin-bottom:6px}
+.funnel-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.funnel-name{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--text-muted);letter-spacing:.02em}
+.funnel-count{font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.3px}
+.bar-track{width:100%;height:34px;background:var(--surface2);border-radius:7px;overflow:hidden}
+.bar-fill{height:100%;border-radius:7px;display:flex;align-items:center;justify-content:flex-end;padding-right:11px;transition:width 1.1s cubic-bezier(.16,1,.3,1)}
+.bar-pct{font-family:var(--mono);font-size:11px;font-weight:500;color:rgba(255,255,255,.85)}
+.drop-row{display:flex;align-items:center;gap:6px;padding:5px 0 12px 4px}
+.drop-icon{color:var(--text-dim);font-size:10px}
+.drop-num{font-family:'Poppins',sans-serif;font-size:11px;font-weight:500;color:var(--red)}
+.drop-txt{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--text-dim)}
+.cr-row{display:flex;gap:12px;margin-bottom:32px}
+.cr-tile{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px 12px;text-align:center}
+.cr-tile-label{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--text-dim);letter-spacing:.04em;margin-bottom:8px}
+.cr-tile-val{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;color:var(--blue-glow);letter-spacing:-.5px;line-height:1}
+.cr-tile-sub{font-family:var(--mono);font-size:10px;font-weight:300;color:var(--text-dim);margin-top:6px}
+.time-row{display:flex;gap:14px}
+.time-tile{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:22px 14px;text-align:center}
+.time-num{font-family:'Poppins',sans-serif;font-size:40px;font-weight:700;color:var(--teal);letter-spacing:-1.5px;line-height:1}
+.time-unit{font-family:var(--mono);font-size:11px;font-weight:300;color:var(--text-dim);margin-top:2px}
+.time-desc{font-size:12px;font-weight:500;color:var(--text-muted);margin-top:10px}
+.insight{background:rgba(26,108,240,.06);border:1px solid rgba(59,130,246,.15);border-left:3px solid var(--blue-mid);border-radius:8px;padding:16px 20px;margin-top:24px;font-size:13px;font-weight:400;color:var(--blue-pale);line-height:1.7}
+.insight strong{color:var(--blue-glow);font-weight:600}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:960px){body{padding:32px 20px 60px}.grid-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-eyebrow">E-Commerce Analytics · Funnel Report</div>
+  <h1>Purchase Funnel</h1>
+  <div class="header-sub">5,000 visitors → 826 purchases · Overall conversion rate: 16.52%</div>
+  <div class="header-divider"></div>
+</div>
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <span class="section-label">Purchase Funnel — Step Drop-off</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="grid-2">
+    <div class="card" style="animation-delay:.06s">
+      <div class="card-accent"></div>
+      <div class="chart-title">Visitor Count at Each Stage</div>
+      <div class="chart-sub">How many users remain after each funnel step</div>
+      <div id="mainFunnel"></div>
+      <div class="insight">
+        <strong>Biggest leak:</strong> Only 31% of visitors add to cart — over two-thirds disappear before ever showing purchase intent. Every step after the cart is comparatively healthy. Improving the landing page or product discovery experience would have the greatest single impact on revenue.
+      </div>
+    </div>
+    <div class="card" style="animation-delay:.12s">
+      <div class="card-accent"></div>
+      <div class="chart-title">Step-to-Step Conversion Rates</div>
+      <div class="chart-sub">% of users who successfully move to the next step</div>
+      <div class="cr-row" id="crSteps"></div>
+      <div class="chart-title">Time to Convert</div>
+      <div class="chart-sub">Average minutes from first visit to each milestone</div>
+      <div class="time-row">
+        <div class="time-tile"><div class="time-num">11</div><div class="time-unit">min</div><div class="time-desc">View → Cart</div></div>
+        <div class="time-tile"><div class="time-num">13</div><div class="time-unit">min</div><div class="time-desc">View → Purchase</div></div>
+        <div class="time-tile"><div class="time-num">24</div><div class="time-unit">min</div><div class="time-desc">Full Journey</div></div>
+      </div>
+      <div class="insight">
+        Once someone adds to cart, they complete the purchase in roughly <strong>13 minutes total</strong>. Buyers who intend to purchase, do — the checkout experience is not creating friction.
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const funnelSteps = [
+  {name:'page_view',count:5000},{name:'add_to_cart',count:1553},
+  {name:'checkout_start',count:1103},{name:'payment_info',count:899},{name:'purchase',count:826}
+];
+const stepCRs = [
+  {label:'View → Cart',value:31.06,sub:'hardest step'},
+  {label:'Cart → Checkout',value:71.02,sub:'strong'},
+  {label:'Check → Payment',value:81.50,sub:'very strong'},
+  {label:'Pay → Purchase',value:91.88,sub:'excellent'}
+];
+const barCols=['#1a6cf0','#2578f5','#3b82f6','#60a5fa','#93c5fd'];
+function buildFunnel(){
+  const wrap=document.getElementById('mainFunnel'),max=funnelSteps[0].count;
+  funnelSteps.forEach((s,i)=>{
+    const pct=(s.count/max*100).toFixed(1);
+    const drop=i>0?((funnelSteps[i-1].count-s.count)/funnelSteps[i-1].count*100).toFixed(1):null;
+    const d=document.createElement('div');d.className='funnel-step';
+    d.innerHTML=`<div class="funnel-meta"><span class="funnel-name">${s.name.replace(/_/g,' ')}</span><span class="funnel-count">${s.count.toLocaleString()}</span></div><div class="bar-track"><div class="bar-fill" style="width:0%;background:linear-gradient(90deg,${barCols[i]},${barCols[Math.min(i+1,4)]})"><span class="bar-pct">${pct}%</span></div></div>${drop?`<div class="drop-row"><span class="drop-icon">▾</span><span class="drop-num">−${drop}%</span><span class="drop-txt"> dropped here</span></div>`:'<div style="height:16px"></div>'}`;
+    wrap.appendChild(d);
+    setTimeout(()=>d.querySelector('.bar-fill').style.width=pct+'%',230+i*130);
+  });
+}
+function buildCR(){
+  const wrap=document.getElementById('crSteps');
+  stepCRs.forEach(cr=>{
+    const d=document.createElement('div');d.className='cr-tile';
+    d.innerHTML=`<div class="cr-tile-label">${cr.label}</div><div class="cr-tile-val">${cr.value.toFixed(1)}%</div><div class="cr-tile-sub">${cr.sub}</div>`;
+    wrap.appendChild(d);
+  });
+}
+buildFunnel();buildCR();
+</script>
+</body>
+</html>
