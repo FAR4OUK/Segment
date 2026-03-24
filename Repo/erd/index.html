@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftCart ERD</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg:      #0d0f14;
+    --surface: #13161e;
+    --border:  #1e2330;
+    --a1:      #4f8ef7;
+    --a2:      #f7634f;
+    --a3:      #4ff7a0;
+    --a4:      #f7d44f;
+    --a5:      #c44ff7;
+    --text:    #e2e8f0;
+    --muted:   #5a6478;
+    --pk:      #f7d44f;
+    --fk:      #4ff7a0;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  header {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    padding: 13px 28px;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  header h1 { font-family:'Syne',sans-serif; font-size:17px; font-weight:800; color:#fff; }
+  header .sep { color:var(--border); }
+  header .sub { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+
+  .hints {
+    margin-left:auto; display:flex; gap:20px; align-items:center;
+    font-size:10px; color:var(--muted); letter-spacing:.5px;
+  }
+  .hints span { display:flex; gap:5px; align-items:center; }
+  .dot { width:7px; height:7px; border-radius:2px; }
+
+  #canvas {
+    position: fixed;
+    top:52px; left:0; right:0; bottom:0;
+    overflow: hidden;
+  }
+  #canvas.panning { cursor: grabbing; }
+
+  #world {
+    position: absolute;
+    width: 3200px; height: 3200px;
+    transform-origin: 0 0;
+  }
+
+  svg#lines {
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
+    pointer-events:none; overflow:visible;
+  }
+
+  /* ── Tables ── */
+  .table {
+    position:absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius:10px; overflow:hidden;
+    min-width:230px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    cursor:grab;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .table.dragging { cursor:grabbing; box-shadow:0 28px 80px rgba(0,0,0,0.85); }
+  .table.lit { box-shadow: 0 0 0 2px var(--hc), 0 20px 60px rgba(0,0,0,0.7); border-color: var(--hc); }
+
+  .table-header {
+    padding:11px 16px;
+    display:flex; align-items:center; gap:10px;
+    border-bottom:1px solid var(--border);
+  }
+  .table-icon { width:5px; height:26px; border-radius:3px; flex-shrink:0; }
+  .table-name { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:#fff; }
+  .table-badge {
+    margin-left:auto; font-size:9px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--muted);
+    background:rgba(255,255,255,0.05); padding:2px 7px; border-radius:20px;
+  }
+
+  .table-body { padding:5px 0; }
+
+  .col-row {
+    display:flex; align-items:center; gap:8px;
+    padding:5px 16px; font-size:11.5px;
+    transition:background .12s;
+  }
+  .col-row:hover { background:rgba(255,255,255,0.03); }
+  .col-row.lit-fk { background:rgba(79,247,160,0.1); }
+  .col-row.lit-pk { background:rgba(247,212,79,0.1); }
+
+  .col-tag {
+    font-size:9px; font-weight:700; letter-spacing:1px;
+    padding:2px 5px; border-radius:3px;
+    min-width:26px; text-align:center; flex-shrink:0;
+  }
+  .tag-pk    { background:rgba(247,212,79,0.15);  color:var(--pk); }
+  .tag-fk    { background:rgba(79,247,160,0.15);  color:var(--fk); }
+  .tag-empty { min-width:26px; }
+
+  .col-name { color:var(--text); flex:1; }
+  .col-type { color:var(--muted); font-size:10px; }
+  .divider  { height:1px; background:var(--border); margin:4px 16px; }
+
+  /* ── SVG ── */
+  .rel-path {
+    fill:none; stroke:var(--muted);
+    stroke-width:1.5; opacity:.4;
+    transition:stroke .2s, opacity .2s, stroke-width .2s;
+    pointer-events:stroke; cursor:pointer;
+  }
+  .rel-path:hover, .rel-path.active {
+    stroke:var(--a3); opacity:1; stroke-width:2.5;
+  }
+
+  .rel-dot { fill:var(--muted); transition:fill .2s; pointer-events:none; }
+  .rel-dot.active { fill:var(--a3); }
+
+  .rel-card {
+    font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
+    fill:var(--muted); transition:fill .2s; pointer-events:none;
+  }
+  .rel-card.active { fill:var(--a3); }
+
+  #tip {
+    position:fixed; z-index:200;
+    background:#1a1d27; border:1px solid var(--border);
+    border-radius:6px; padding:7px 11px;
+    font-size:11px; color:var(--text);
+    pointer-events:none; opacity:0; transition:opacity .15s;
+    white-space:nowrap;
+  }
+  #tip.on { opacity:1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SwiftCart</h1>
+  <span class="sep">·</span>
+  <span class="sub">Star Schema ERD</span>
+  <div class="hints">
+    <span><div class="dot" style="background:var(--pk)"></div>PK</span>
+    <span><div class="dot" style="background:var(--fk)"></div>FK</span>
+    <span style="color:var(--a3)">1 → N</span>
+    <span>Drag tables &nbsp;·&nbsp; Hover lines &nbsp;·&nbsp; Scroll to zoom</span>
+  </div>
+</header>
+
+<div id="canvas">
+  <div id="world">
+    <svg id="lines"></svg>
+
+    <!-- FACT_ORDERS -->
+    <div class="table" id="fact_orders" style="top:240px;left:530px;min-width:268px;--hc:var(--a2);z-index:10">
+      <div class="table-header" style="border-left:3px solid var(--a2)">
+        <div class="table-icon" style="background:var(--a2)"></div>
+        <div class="table-name">fact_orders</div>
+        <div class="table-badge">Fact</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-tag tag-pk">PK</span><span class="col-name">order_id</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">invoice_id</span><span class="col-type">INT</span></div>
+        <div class="divider"></div>
+        <div class="col-row" data-fk="customer_id"><span class="col-tag tag-fk">FK</span><span class="col-name">customer_id</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row" data-fk="product_id"><span class="col-tag tag-fk">FK</span><span class="col-name">product_id</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row" data-fk="order_date_key"><span class="col-tag tag-fk">FK</span><span class="col-name">order_date_key</span><span class="col-type">INT</span></div>
+        <div class="col-row" data-fk="delivery_date_key"><span class="col-tag tag-fk">FK</span><span class="col-name">delivery_date_key</span><span class="col-type">INT</span></div>
+        <div class="col-row" data-fk="return_date_key"><span class="col-tag tag-fk">FK</span><span class="col-name">return_date_key</span><span class="col-type">INT</span></div>
+        <div class="col-row" data-fk="discount_code"><span class="col-tag tag-fk">FK</span><span class="col-name">discount_code</span><span class="col-type">VARCHAR</span></div>
+        <div class="divider"></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">quantity</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">unit_price</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">discount_pct</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">line_total</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">cogs</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">gross_profit</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">shipping_cost</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">order_status</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">shipping_days</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">is_returned</span><span class="col-type">BIT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">return_reason</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">payment_method</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">acquisition_channel</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">region</span><span class="col-type">VARCHAR</span></div>
+      </div>
+    </div>
+
+    <!-- DIM_CUSTOMERS -->
+    <div class="table" id="dim_customers" style="top:70px;left:80px;min-width:235px;--hc:var(--a1);z-index:10">
+      <div class="table-header" style="border-left:3px solid var(--a1)">
+        <div class="table-icon" style="background:var(--a1)"></div>
+        <div class="table-name">dim_customers</div>
+        <div class="table-badge">Dim</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row" data-pk="customer_id"><span class="col-tag tag-pk">PK</span><span class="col-name">customer_id</span><span class="col-type">VARCHAR</span></div>
+        <div class="divider"></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">customer_segment</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">region</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">email</span><span class="col-type">VARCHAR</span></div>
+      </div>
+    </div>
+
+    <!-- DIM_PRODUCTS -->
+    <div class="table" id="dim_products" style="top:70px;left:1050px;min-width:235px;--hc:var(--a3);z-index:10">
+      <div class="table-header" style="border-left:3px solid var(--a3)">
+        <div class="table-icon" style="background:var(--a3)"></div>
+        <div class="table-name">dim_products</div>
+        <div class="table-badge">Dim</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row" data-pk="product_id"><span class="col-tag tag-pk">PK</span><span class="col-name">product_id</span><span class="col-type">VARCHAR</span></div>
+        <div class="divider"></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">product_name</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">category</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">subcategory</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">supplier</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">standard_cost</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">list_price</span><span class="col-type">FLOAT</span></div>
+      </div>
+    </div>
+
+    <!-- DIM_DATE -->
+    <div class="table" id="dim_date" style="top:610px;left:80px;min-width:245px;--hc:var(--a4);z-index:10">
+      <div class="table-header" style="border-left:3px solid var(--a4)">
+        <div class="table-icon" style="background:var(--a4)"></div>
+        <div class="table-name">dim_date</div>
+        <div class="table-badge">Dim</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row" data-pk="date_key"><span class="col-tag tag-pk">PK</span><span class="col-name">date_key</span><span class="col-type">INT</span></div>
+        <div class="divider"></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">date</span><span class="col-type">DATE</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">year</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">quarter</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">quarter_label</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">month_num</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">month_name</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">week_num</span><span class="col-type">INT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">day_of_week</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">is_weekend</span><span class="col-type">BIT</span></div>
+      </div>
+    </div>
+
+    <!-- DIM_PROMOTIONS -->
+    <div class="table" id="dim_promotions" style="top:610px;left:1050px;min-width:235px;--hc:var(--a5);z-index:10">
+      <div class="table-header" style="border-left:3px solid var(--a5)">
+        <div class="table-icon" style="background:var(--a5)"></div>
+        <div class="table-name">dim_promotions</div>
+        <div class="table-badge">Dim</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row" data-pk="discount_code"><span class="col-tag tag-pk">PK</span><span class="col-name">discount_code</span><span class="col-type">VARCHAR</span></div>
+        <div class="divider"></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">discount_pct</span><span class="col-type">FLOAT</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">campaign</span><span class="col-type">VARCHAR</span></div>
+        <div class="col-row"><span class="col-tag tag-empty"></span><span class="col-name">channel</span><span class="col-type">VARCHAR</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<script>
+const RELS = [
+  { id:'r_cust',     from:'dim_customers',  fk:'customer_id',      pk:'customer_id',      to:'fact_orders', label:'dim_customers.customer_id → fact_orders.customer_id' },
+  { id:'r_prod',     from:'dim_products',   fk:'product_id',       pk:'product_id',       to:'fact_orders', label:'dim_products.product_id → fact_orders.product_id' },
+  { id:'r_odate',    from:'dim_date',       fk:'order_date_key',   pk:'date_key',         to:'fact_orders', label:'dim_date.date_key → fact_orders.order_date_key' },
+  { id:'r_ddate',    from:'dim_date',       fk:'delivery_date_key',pk:'date_key',         to:'fact_orders', label:'dim_date.date_key → fact_orders.delivery_date_key' },
+  { id:'r_rdate',    from:'dim_date',       fk:'return_date_key',  pk:'date_key',         to:'fact_orders', label:'dim_date.date_key → fact_orders.return_date_key' },
+  { id:'r_promo',    from:'dim_promotions', fk:'discount_code',    pk:'discount_code',    to:'fact_orders', label:'dim_promotions.discount_code → fact_orders.discount_code' },
+];
+
+const world  = document.getElementById('world');
+const svg    = document.getElementById('lines');
+const canvas = document.getElementById('canvas');
+const tip    = document.getElementById('tip');
+
+let scale=1, panX=60, panY=20;
+let isPanning=false, panStart=null;
+let dragEl=null, dragOX=0, dragOY=0, zTop=20;
+
+// ── helpers ──────────────────────────────────────────────────────────────
+function applyTransform(){ world.style.transform=`translate(${panX}px,${panY}px) scale(${scale})`; }
+
+function worldMouse(e){
+  const cr=canvas.getBoundingClientRect();
+  return { x:(e.clientX-cr.left-panX)/scale, y:(e.clientY-cr.top-panY)/scale };
+}
+
+function elRect(el){
+  return {
+    l:el.offsetLeft, t:el.offsetTop,
+    r:el.offsetLeft+el.offsetWidth,
+    b:el.offsetTop+el.offsetHeight,
+    cx:el.offsetLeft+el.offsetWidth/2,
+    cy:el.offsetTop+el.offsetHeight/2,
+    w:el.offsetWidth, h:el.offsetHeight
+  };
+}
+
+function rowMidY(tableId, attr, val){
+  const tbl=document.getElementById(tableId);
+  const row=tbl.querySelector(`[${attr}="${val}"]`);
+  if(!row) return tbl.offsetTop+tbl.offsetHeight/2;
+  return tbl.offsetTop+row.offsetTop+row.offsetHeight/2;
+}
+
+// ── draw lines ───────────────────────────────────────────────────────────
+function drawLines(){
+  svg.innerHTML='';
+  RELS.forEach((rel,i)=>{
+    const fromEl=document.getElementById(rel.from);
+    const toEl=document.getElementById(rel.to);
+    const fr=elRect(fromEl), tr=elRect(toEl);
+
+    // pick connection sides
+    let x1,x2;
+    if(fr.r < tr.l){ x1=fr.r; x2=tr.l; }
+    else if(tr.r < fr.l){ x1=fr.l; x2=tr.r; }
+    else { x1=fr.cx<tr.cx?fr.r:fr.l; x2=fr.cx<tr.cx?tr.l:tr.r; }
+
+    const y1=rowMidY(rel.from,'data-pk',rel.pk);
+    const y2=rowMidY(rel.to,'data-fk',rel.fk);
+    const dx=Math.abs(x2-x1)*0.52;
+
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.dataset.rel=rel.id;
+
+    // invisible wide hit area
+    const hit=document.createElementNS('http://www.w3.org/2000/svg','path');
+    hit.setAttribute('d',`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`);
+    hit.setAttribute('fill','none'); hit.setAttribute('stroke','transparent');
+    hit.setAttribute('stroke-width','14'); hit.style.pointerEvents='stroke'; hit.style.cursor='pointer';
+    g.appendChild(hit);
+
+    // visible path
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`);
+    path.setAttribute('class','rel-path');
+    path.dataset.rel=rel.id;
+    g.appendChild(path);
+
+    // endpoint dots
+    [[x1,y1],[x2,y2]].forEach(([cx,cy])=>{
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',3.5);
+      c.setAttribute('class','rel-dot'); c.dataset.rel=rel.id;
+      g.appendChild(c);
+    });
+
+    // cardinality labels — "1" on dim side, "N" on fact side
+    const cards=[
+      { x:x1, y:y1, label:'1', anchor: x1<x2?'end':'start', offX: x1<x2?-12:12 },
+      { x:x2, y:y2, label:'N', anchor: x2>x1?'start':'end', offX: x2>x1?12:-12 },
+    ];
+    cards.forEach(ld=>{
+      const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',ld.x+ld.offX); t.setAttribute('y',ld.y-7);
+      t.setAttribute('class','rel-card'); t.setAttribute('text-anchor',ld.anchor);
+      t.dataset.rel=rel.id; t.textContent=ld.label;
+      g.appendChild(t);
+    });
+
+    // hover on group (hit area captures it)
+    g.addEventListener('mouseenter',(e)=>activateRel(rel,e));
+    g.addEventListener('mousemove', (e)=>moveTip(e));
+    g.addEventListener('mouseleave',()=>deactivateRel(rel));
+
+    svg.appendChild(g);
+  });
+}
+
+// ── relation highlight ────────────────────────────────────────────────────
+function activateRel(rel,e){
+  svg.querySelectorAll(`[data-rel="${rel.id}"]`).forEach(el=>el.classList.add('active'));
+
+  // highlight FK row in fact table
+  const fkRow=document.querySelector(`#${rel.to} [data-fk="${rel.fk}"]`);
+  if(fkRow) fkRow.classList.add('lit-fk');
+
+  // highlight PK row in dim table
+  const pkRow=document.querySelector(`#${rel.from} [data-pk="${rel.pk}"]`);
+  if(pkRow) pkRow.classList.add('lit-pk');
+
+  // glow tables
+  document.getElementById(rel.from).classList.add('lit');
+  document.getElementById(rel.to).classList.add('lit');
+
+  tip.textContent=rel.label;
+  tip.classList.add('on');
+  moveTip(e);
+}
+
+function deactivateRel(rel){
+  svg.querySelectorAll(`[data-rel="${rel.id}"]`).forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.lit-fk,.lit-pk').forEach(el=>el.classList.remove('lit-fk','lit-pk'));
+  document.querySelectorAll('.lit').forEach(el=>el.classList.remove('lit'));
+  tip.classList.remove('on');
+}
+
+function moveTip(e){
+  tip.style.left=(e.clientX+14)+'px';
+  tip.style.top =(e.clientY-36)+'px';
+}
+
+// ── drag tables ───────────────────────────────────────────────────────────
+document.querySelectorAll('.table').forEach(tbl=>{
+  tbl.addEventListener('mousedown',(e)=>{
+    e.preventDefault();
+    dragEl=tbl;
+    zTop++; tbl.style.zIndex=zTop;
+    tbl.classList.add('dragging');
+    const wp=worldMouse(e);
+    dragOX=wp.x-tbl.offsetLeft;
+    dragOY=wp.y-tbl.offsetTop;
+  });
+});
+
+// ── pan ───────────────────────────────────────────────────────────────────
+canvas.addEventListener('mousedown',(e)=>{
+  if(dragEl||e.target.closest('.table')) return;
+  isPanning=true;
+  panStart={x:e.clientX-panX, y:e.clientY-panY};
+  canvas.classList.add('panning');
+});
+
+// ── mouse move ────────────────────────────────────────────────────────────
+window.addEventListener('mousemove',(e)=>{
+  if(dragEl){
+    const wp=worldMouse(e);
+    dragEl.style.left=Math.max(0,wp.x-dragOX)+'px';
+    dragEl.style.top =Math.max(0,wp.y-dragOY)+'px';
+    drawLines(); return;
+  }
+  if(isPanning&&panStart){
+    panX=e.clientX-panStart.x;
+    panY=e.clientY-panStart.y;
+    applyTransform();
+  }
+});
+
+window.addEventListener('mouseup',()=>{
+  if(dragEl){ dragEl.classList.remove('dragging'); dragEl=null; }
+  isPanning=false; panStart=null;
+  canvas.classList.remove('panning');
+});
+
+// ── zoom ──────────────────────────────────────────────────────────────────
+canvas.addEventListener('wheel',(e)=>{
+  e.preventDefault();
+  const delta=e.deltaY>0?0.9:1.1;
+  scale=Math.min(2.5,Math.max(0.25,scale*delta));
+  applyTransform();
+},{passive:false});
+
+// ── init ──────────────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{ applyTransform(); drawLines(); });
+</script>
+</body>
+</html>
